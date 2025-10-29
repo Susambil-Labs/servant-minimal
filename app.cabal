@@ -1,0 +1,90 @@
+cabal-version:   3.0
+name:            app
+version:         0.1.0.0
+license:         BSD-3-Clause
+license-file:    LICENSE
+maintainer:      lambdajon42@gmail.com
+author:          lambdajon
+category:        Network
+build-type:      Simple
+extra-doc-files: CHANGELOG.md
+
+library
+  -- allow-newer: openapi3
+
+  exposed-modules:
+    App
+
+
+  build-depends:
+    , aeson
+    , async
+    , base
+    , base16-bytestring
+    , bytestring
+    , containers
+    , cryptohash-sha256
+    , esqueleto
+    , http-types
+    , lens
+    , log-base
+    , monad-logger
+    , mtl
+    , openapi3
+    , optparse-generic
+    , persistent
+    , persistent-migration
+    , persistent-postgresql
+    , resource-pool
+    , safe-exceptions
+    , servant
+    , servant-client
+    , servant-openapi3
+    , servant-server
+    , stm
+    , telegram-bot-api
+    , telegram-bot-simple
+    , text
+    , transformers
+    , unliftio
+    , unordered-containers
+    , utf8-string
+    , wai
+    , warp
+    , servant-exceptions 
+    , servant-exceptions-server
+    , exceptions
+
+  hs-source-dirs:     src
+  default-language:   GHC2024
+  default-extensions:
+    BlockArguments
+    DataKinds
+    DeriveAnyClass
+    DerivingStrategies
+    ImplicitParams
+    ImportQualifiedPost
+    LambdaCase
+    OverloadedRecordDot
+    OverloadedStrings
+    RecordWildCards
+
+executable app
+  main-is:          Main.hs
+  hs-source-dirs:   app
+  default-language: GHC2024
+  ghc-options:      -Wall -O2 -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+    , base
+    , bytestring
+    , app
+
+test-suite app-test
+  type:             exitcode-stdio-1.0
+  main-is:          Main.hs
+  hs-source-dirs:   test
+  default-language: GHC2024
+  ghc-options:      -Wall
+  build-depends:
+    , base
+    , app
