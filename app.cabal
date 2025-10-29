@@ -13,8 +13,9 @@ library
   -- allow-newer: openapi3
 
   exposed-modules:
+    API
     App
-
+    Database
 
   build-depends:
     , aeson
@@ -25,6 +26,7 @@ library
     , containers
     , cryptohash-sha256
     , esqueleto
+    , exceptions
     , http-types
     , lens
     , log-base
@@ -39,6 +41,8 @@ library
     , safe-exceptions
     , servant
     , servant-client
+    , servant-exceptions
+    , servant-exceptions-server
     , servant-openapi3
     , servant-server
     , stm
@@ -51,9 +55,6 @@ library
     , utf8-string
     , wai
     , warp
-    , servant-exceptions 
-    , servant-exceptions-server
-    , exceptions
 
   hs-source-dirs:     src
   default-language:   GHC2024
@@ -75,9 +76,9 @@ executable app
   default-language: GHC2024
   ghc-options:      -Wall -O2 -threaded -rtsopts -with-rtsopts=-N
   build-depends:
+    , app
     , base
     , bytestring
-    , app
 
 test-suite app-test
   type:             exitcode-stdio-1.0
@@ -86,5 +87,5 @@ test-suite app-test
   default-language: GHC2024
   ghc-options:      -Wall
   build-depends:
-    , base
     , app
+    , base

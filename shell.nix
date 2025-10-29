@@ -47,7 +47,7 @@ pkgs.stdenv.mkDerivation {
     pkgs.libz
     pkgs.libpq.pg_config
     pkgs.pkg-config
-    pkgs.postgresql-libpq-configure
+    # pkgs.postgresql-libpq-configure
     pre-commit-check.enabledPackages
   ];
   # Things to run before entering devShell

@@ -4,4 +4,4 @@ import App
 
 main :: IO ()
 main = do
-  runApp
+    runApp

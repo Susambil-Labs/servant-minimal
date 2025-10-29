@@ -28,7 +28,7 @@
         # pkgs = import nixpkgs {localSystem = {inherit system;};};
         pkgs = nixpkgs.legacyPackages.${system};
         hlib = pkgs.haskell.lib;
-        hpkgs = pkgs.haskell.packages."ghc912".override {
+        hpkgs = pkgs.haskell.packages."ghc910".override {
           overrides = self: super: {
             tasty-wai = hlib.dontCheck (hlib.doJailbreak super.tasty-wai);
             servant-client = hlib.dontCheck (hlib.doJailbreak super.servant-client);
