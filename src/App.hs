@@ -4,6 +4,8 @@ module App (
 
 import Database
 
+import API
+
 import Control.Monad (when)
 import Control.Monad.Logger (NoLoggingT (runNoLoggingT))
 import Data.ByteString qualified as B
@@ -19,8 +21,7 @@ data Options w = Options
     , database :: !(w ::: B.ByteString <?> "Database connection string" <#> "d")
     , databasePoolSize :: !(w ::: Int <?> "Database pool size" <!> "10" <#> "s")
     , migrations :: !(w ::: Bool <?> "Run migrations" <!> "False" <#> "m")
-    , datasetFolder :: !(w ::: FilePath <?> "Default dataset folder" <#> "f")
-    , botToken :: !(w ::: String <?> "Telegram bot token" <#> "t")
+    -- , datasetFolder :: !(w ::: FilePath <?> "Default dataset folder" <#> "f")
     }
     deriving stock (Generic)
 
@@ -29,14 +30,8 @@ deriving stock instance Show (Options Unwrapped)
 
 runApp :: IO ()
 runApp = do
-    print "hi"
     (op :: Options Unwrapped) <- unwrapRecord "Servant application"
     pool <- runNoLoggingT $ createPostgresqlPool op.database op.databasePoolSize
     let ?pool = pool
     when op.migrations migrate'
-
--- migrateDb
--- importFromDataset op.datasetFolder
--- cm <- communityList
--- st <- newBotState Settings{botName = "floss bot", botToken = T.pack op.botToken, debugEnabled = True} cm
--- WP.run op.port $ runApi st
+    WP.run op.port $ app
