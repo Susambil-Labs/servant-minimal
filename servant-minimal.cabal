@@ -16,6 +16,8 @@ library
     API
     App
     Database
+    Types
+    Users
 
   build-depends:
     , aeson
@@ -32,7 +34,6 @@ library
     , log-base
     , monad-logger
     , mtl
-    , openapi3
     , optparse-generic
     , persistent
     , persistent-migration
@@ -43,9 +44,12 @@ library
     , servant-client
     , servant-exceptions
     , servant-exceptions-server
-    , servant-openapi3
     , servant-server
+    , servant-swagger
+    , servant-swagger-ui
+    , servant-swagger-ui-core
     , stm
+    , swagger2
     , telegram-bot-api
     , telegram-bot-simple
     , text

@@ -12,7 +12,7 @@
   ...
 }:
 pkgs.stdenv.mkDerivation {
-  name = "registrar";
+  name = "servant-minimal";
 
   # Build time dependencies
   nativeBuildInputs = with pkgs; [
@@ -36,6 +36,7 @@ pkgs.stdenv.mkDerivation {
     hpkgs.postgresql-libpq-configure
     hpkgs.streaming-commons
     hpkgs.tls
+    hpkgs.lzma
 
     pkgs.just
     pkgs.alejandra
@@ -47,6 +48,7 @@ pkgs.stdenv.mkDerivation {
     pkgs.libz
     pkgs.libpq.pg_config
     pkgs.pkg-config
+    pkgs.xz
     # pkgs.postgresql-libpq-configure
     pre-commit-check.enabledPackages
   ];
