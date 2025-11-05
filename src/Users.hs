@@ -143,7 +143,7 @@ _create u = do
 create1 :: (PoolSql) => MUser -> Handler (CreateUserResponse)
 create1 u = runUVerbT $ do
   uExists <- liftIO $ getByName u.username
-  when (isJust uExists) $ throwUVerb BadRequest{error = "fuck you"}
+  when (isJust uExists) $ throwUVerb BadRequest{error = "Bad error"}
 
   uId <- liftIO $ createUser u
   return $ WithStatus @201 uId
