@@ -17,14 +17,17 @@ import Database.Esqueleto.Experimental
 import Database.Persist.TH
 
 import Data.Data (Typeable)
+import Data.OpenApi (ToParamSchema, ToSchema)
 import GHC.Generics (Generic)
+import Servant (HasStatus)
+import Servant.API (WithStatus)
 import Types
 
 derivePersistField "UserStatus"
 
 share
-    [mkPersist sqlSettings{mpsPrefixFields = False}, mkMigrate "migrateAll"]
-    [persistLowerCase|
+  [mkPersist sqlSettings{mpsPrefixFields = False}, mkMigrate "migrateAll"]
+  [persistLowerCase|
   MUser
     username Text
     fullName Text
@@ -39,10 +42,17 @@ deriving stock instance Generic MUser
 deriving stock instance Typeable MUser
 deriving anyclass instance ToJSON MUser
 deriving anyclass instance FromJSON MUser
+deriving anyclass instance ToSchema MUser
 
 type MUserId :: Type
 deriving stock instance Generic MUserId
 deriving stock instance Typeable MUserId
+deriving anyclass instance ToSchema MUserId
+deriving anyclass instance ToParamSchema MUserId
+
+-- instance ToSchema KeyBackend
+deriving anyclass instance ToSchema (BackendKey SqlBackend)
+deriving anyclass instance ToParamSchema (BackendKey SqlBackend)
 
 -- >>>  MUserId 1
 -- Couldn't match expected type: t0_a6ooI[tau:1] -> t_a6ooK[sk:1]
@@ -80,16 +90,16 @@ userList = map entityVal <$> withPool (select $ from table)
 
 oneUser :: (PoolSql) => MUserId -> IO (Maybe MUser)
 oneUser _id =
-    fmap entityVal <$> withPool do
-        selectOne do
-            p <- from table
-            where_ (p ^. MUserId ==. val _id)
-            pure p
+  fmap entityVal <$> withPool do
+    selectOne do
+      p <- from table
+      where_ (p ^. MUserId ==. val _id)
+      pure p
 
 getByName :: (PoolSql) => Text -> IO (Maybe MUser)
 getByName nm =
-    fmap entityVal <$> withPool do
-        selectOne do
-            p <- from table
-            where_ ((p ^. Username) ==. val nm)
-            pure p
+  fmap entityVal <$> withPool do
+    selectOne do
+      p <- from table
+      where_ ((p ^. Username) ==. val nm)
+      pure p

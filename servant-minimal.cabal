@@ -29,11 +29,13 @@ library
     , cryptohash-sha256
     , esqueleto
     , exceptions
+    , generics-sop
     , http-types
     , lens
     , log-base
     , monad-logger
     , mtl
+    , openapi3
     , optparse-generic
     , persistent
     , persistent-migration
@@ -44,6 +46,7 @@ library
     , servant-client
     , servant-exceptions
     , servant-exceptions-server
+    , servant-openapi3
     , servant-server
     , servant-swagger
     , servant-swagger-ui
