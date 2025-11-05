@@ -43,17 +43,16 @@ import Control.Monad.Trans.Except (runExceptT)
 import Data.ByteString.Lazy qualified as BLS
 
 newtype UVerbT xs m a = UVerbT {unUVerbT :: ExceptT (Union xs) m a}
-  deriving stock (Functor)
-  deriving anyclass (MonadTrans)
+  deriving (Functor, Applicative, Monad, MonadTrans, MonadIO)
 
-deriving anyclass instance (Applicative a) => Applicative (UVerbT xs a)
+-- deriving anyclass instance (Applicative a) => Applicative (UVerbT xs a)
 
-deriving anyclass instance (Monad m) => Monad (UVerbT xs m)
+-- deriving anyclass instance (Monad m) => Monad (UVerbT xs m)
 
 -- (>>=) :: (Monad m) => UVerbT xs m a -> (a -> UVerbT xs m b) -> UVerbT xs m b
 -- x >>= f = let a = unUVerbT x in undefined
 -- where
-deriving anyclass instance (MonadIO m) => MonadIO (UVerbT xs m)
+-- deriving anyclass instance (MonadIO m) => MonadIO (UVerbT xs m)
 
 -- liftIO a = do
 --   b <- liftIO a
