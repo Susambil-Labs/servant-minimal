@@ -75,9 +75,6 @@ runUVerbT (UVerbT act) = either id id <$> runExceptT (act >>= respond)
 throwUVerb :: (PoolSql, Monad m, HasStatus x, IsMember x xs) => x -> UVerbT xs m a
 throwUVerb = UVerbT . ExceptT . fmap Left . respond
 
-class Evaluable c where
-  type Return c :: Type
-
 type User :: Type
 data User = User
   { username :: Text
