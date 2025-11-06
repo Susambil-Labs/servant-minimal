@@ -43,7 +43,7 @@ import Control.Monad.Trans.Except (runExceptT)
 import Data.ByteString.Lazy qualified as BLS
 
 newtype UVerbT xs m a = UVerbT {unUVerbT :: ExceptT (Union xs) m a}
-  deriving (Functor, Applicative, Monad, MonadTrans, MonadIO)
+  deriving newtype (Functor, Applicative, Monad, MonadTrans, MonadIO)
 
 -- deriving anyclass instance (Applicative a) => Applicative (UVerbT xs a)
 
@@ -102,9 +102,8 @@ data UserRoutes route = MkUserRoutes
   deriving (Generic)
 
 type CreateUser = ReqBody '[JSON] MUser :> UVerb 'POST '[JSON] ('[BadRequest, WithStatus 201 MUserId])
-type CreateUserResponse = Union '[BadRequest, WithStatus 201 MUserId]
 
-data BadRequest = BadRequest {error :: String}
+data BadRequest = MkBadRequest {error :: String}
   deriving (Eq, Show, Generic)
 
 instance ToJSON BadRequest
@@ -113,6 +112,30 @@ instance ToSchema BadRequest
 
 instance HasStatus BadRequest where
   type StatusOf BadRequest = 400
+
+create1 :: (PoolSql) => MUser -> Handler (Union '[BadRequest, WithStatus 201 MUserId])
+create1 u = runUVerbT $ do
+  uExists <- liftIO $ getByName u.username
+  when (isJust uExists) $ throwUVerb (MkBadRequest "User already exists")
+
+  uId <- liftIO $ createUser u
+  return $ WithStatus @201 uId
+
+uuList :: (PoolSql) => Handler [MUser]
+uuList = liftIO userList
+
+uList :: (PoolSql) => Handler [MUser]
+uList = do
+  x <- liftIO userList
+  pure x
+ where
+
+userApi :: (PoolSql) => UserRoutes AsServer
+userApi =
+  MkUserRoutes
+    { list = uList
+    , create = create1
+    }
 
 _FromUserModel :: Iso' User MUser
 _FromUserModel = iso userToMUser mUserToUser
@@ -135,27 +158,3 @@ _create u = do
     Nothing -> do
       uId <- liftIO $ createUser us
       return (uId ^. from _FromUserId)
-
-create1 :: (PoolSql) => MUser -> Handler (CreateUserResponse)
-create1 u = runUVerbT $ do
-  uExists <- liftIO $ getByName u.username
-  when (isJust uExists) $ throwUVerb BadRequest{error = "Bad error"}
-
-  uId <- liftIO $ createUser u
-  return $ WithStatus @201 uId
-
-uuList :: (PoolSql) => Handler [MUser]
-uuList = liftIO userList
-
-uList :: (PoolSql) => Handler [MUser]
-uList = do
-  x <- liftIO userList
-  pure x
- where
-
-userApi :: (PoolSql) => UserRoutes AsServer
-userApi =
-  MkUserRoutes
-    { list = uList
-    , create = create1
-    }
