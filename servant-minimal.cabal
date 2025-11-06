@@ -30,6 +30,7 @@ library
     , esqueleto
     , exceptions
     , generics-sop
+    , http-media
     , http-types
     , lens
     , log-base

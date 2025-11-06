@@ -20,7 +20,12 @@ import Servant.OpenApi
 import Servant.Swagger.UI (SwaggerSchemaUI, swaggerSchemaUIServer)
 
 import Data.Aeson (encode)
+import Data.Aeson qualified as Aeson
 import Data.ByteString.Lazy.Char8 qualified as BL8
+import Data.ByteString.UTF8 qualified as UTF8
+import Data.Text (Text)
+import Network.HTTP.Media.RenderHeader qualified as HTTPMedia
+import Network.HTTP.Types qualified as HTTP
 
 type API :: Type -> Type
 data API route = MkAPI
@@ -80,6 +85,33 @@ mkServer =
     }
 
 app :: (PoolSql) => Application
-app = genericServe mkServer
+app =
+  serveWithContext
+    (Proxy @(ToServantApi ApiServer))
+    millewares
+    (toServant mkServer)
 
+millewares :: (PoolSql) => Servant.Server.Context '[ErrorFormatters]
+millewares = (customFormatters :. EmptyContext)
+
+customFormatters :: Servant.ErrorFormatters
+customFormatters =
+  defaultErrorFormatters
+    { bodyParserErrorFormatter = bodyParserErrorFormatter'
+    }
+
+bodyParserErrorFormatter' :: ErrorFormatter
+bodyParserErrorFormatter' _ _ errMsg =
+  Servant.ServerError
+    { Servant.errHTTPCode = HTTP.statusCode HTTP.status400
+    , Servant.errReasonPhrase = UTF8.toString $ HTTP.statusMessage HTTP.status400
+    , Servant.errBody =
+        Aeson.encode $
+          Aeson.object
+            [ "code" Aeson..= Aeson.Number 400
+            , "message" Aeson..= errMsg
+            , "label" Aeson..= ("bad-request" :: Text)
+            ]
+    , Servant.errHeaders = [(HTTP.hContentType, HTTPMedia.renderHeader (Servant.contentType (Proxy @Servant.JSON)))]
+    }
 writeSwaggerJSON = BL8.writeFile "data/swagger.json" (encode swaggerDocs)

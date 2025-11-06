@@ -40,23 +40,11 @@ import Types
 import Control.Monad.Except (ExceptT (..), MonadError (..))
 import Control.Monad.RWS (MonadTrans (..))
 import Control.Monad.Trans.Except (runExceptT)
+import Data.Aeson.Types (object)
 import Data.ByteString.Lazy qualified as BLS
 
 newtype UVerbT xs m a = UVerbT {unUVerbT :: ExceptT (Union xs) m a}
   deriving newtype (Functor, Applicative, Monad, MonadTrans, MonadIO)
-
--- deriving anyclass instance (Applicative a) => Applicative (UVerbT xs a)
-
--- deriving anyclass instance (Monad m) => Monad (UVerbT xs m)
-
--- (>>=) :: (Monad m) => UVerbT xs m a -> (a -> UVerbT xs m b) -> UVerbT xs m b
--- x >>= f = let a = unUVerbT x in undefined
--- where
--- deriving anyclass instance (MonadIO m) => MonadIO (UVerbT xs m)
-
--- liftIO a = do
---   b <- liftIO a
---   return b
 
 instance (MonadError e m) => MonadError e (UVerbT xs m) where
   throwError = lift . throwError
@@ -74,26 +62,6 @@ runUVerbT (UVerbT act) = either id id <$> runExceptT (act >>= respond)
 -- | Short-circuit 'UVerbT' computation returning one of the response types.
 throwUVerb :: (PoolSql, Monad m, HasStatus x, IsMember x xs) => x -> UVerbT xs m a
 throwUVerb = UVerbT . ExceptT . fmap Left . respond
-
-type User :: Type
-data User = User
-  { username :: Text
-  , fullName :: Text
-  , email :: Text
-  , status :: UserStatus
-  }
-  deriving stock (Show, Eq, Generic, Typeable)
-  -- deriving anyclass (ToJSON, FromJSON, ToSchema)
-  deriving anyclass (ToJSON, FromJSON)
-
-type UserId :: Type
-newtype UserId = UserId Int64
-  deriving stock (Show, Eq, Generic, Typeable)
-  deriving anyclass (ToJSON, FromJSON, ToSchema, ToParamSchema)
-instance ToSchema User where
-  declareNamedSchema proxy = hp proxy & mapped . schema . title ?~ "User schema"
-   where
-    hp = genericDeclareNamedSchema defaultSchemaOptions
 
 data UserRoutes route = MkUserRoutes
   { list :: route :- Get '[JSON] [MUser]
@@ -136,25 +104,3 @@ userApi =
     { list = uList
     , create = create1
     }
-
-_FromUserModel :: Iso' User MUser
-_FromUserModel = iso userToMUser mUserToUser
- where
-  userToMUser :: User -> MUser
-  userToMUser (User u f e s) = MUser u f e s
-
-  mUserToUser :: MUser -> User
-  mUserToUser (MUser u f e s) = User u f e s
-
-_FromUserId :: Iso' UserId MUserId
-_FromUserId = iso (\(UserId i) -> toSqlKey i) (\x -> UserId $ fromSqlKey x)
-
-_create :: (MonadIO m, PoolSql, MonadError ServerError m) => User -> m UserId
-_create u = do
-  let us = (u ^. _FromUserModel)
-  uExists <- liftIO $ getByName us.username
-  case uExists of
-    Just (_) -> throwError $ err400{errBody = "Bad Request: "}
-    Nothing -> do
-      uId <- liftIO $ createUser us
-      return (uId ^. from _FromUserId)
